@@ -23,16 +23,6 @@ CREATE TABLE IF NOT EXISTS `College` (
   FOREIGN KEY (`campus_ID`) REFERENCES `Campus`(`campus_ID`)
 );
 
--- QUESTION: separate units to lab and lecture?
-CREATE TABLE IF NOT EXISTS `Course` (
-  `course_ID` INT AUTO_INCREMENT,
-  `course_code` VARCHAR(255) NOT NULL,
-  `course_title` VARCHAR(255) NOT NULL,
-  `units` TINYINT UNSIGNED NOT NULL,
-  `section_ID` INT,
-  PRIMARY KEY (`course_ID`)
-);
-
 CREATE TABLE IF NOT EXISTS `Department` (
   `department_ID` INT AUTO_INCREMENT,
   `department_name` VARCHAR(255) NOT NULL,
@@ -74,6 +64,17 @@ CREATE TABLE IF NOT EXISTS `Section` (
   `department_ID` INT NOT NULL,
   PRIMARY KEY (`section_ID`),
   FOREIGN KEY (`department_ID`) REFERENCES `Department`(`department_ID`)
+);
+
+-- QUESTION: separate units to lab and lecture?
+CREATE TABLE IF NOT EXISTS `Course` (
+  `course_ID` INT AUTO_INCREMENT,
+  `course_code` VARCHAR(255) NOT NULL,
+  `course_title` VARCHAR(255) NOT NULL,
+  `units` TINYINT UNSIGNED NOT NULL,
+  `section_ID` INT,
+  PRIMARY KEY (`course_ID`),
+  FOREIGN KEY (`section_ID`) REFERENCES `Section`(`section_ID`)
 );
 
 -- QUESTION: add `type` enum(lab, lecture)?
