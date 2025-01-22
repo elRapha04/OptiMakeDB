@@ -175,13 +175,6 @@ DELIMITER ;
 -- ================================================
 DELIMITER $$
 
--- Procedure: Assign a course to a specific faculty member
-CREATE PROCEDURE AssignCourse(IN faculty_ID INT, IN course_ID INT)
-BEGIN
-    INSERT INTO AssignedCourses (faculty_ID, course_ID)
-    VALUES (faculty_ID, course_ID);
-END $$
-
 -- Procedure: Add a new schedule entry for a specific course and section
 CREATE PROCEDURE AddSchedule(IN section_ID INT, IN course_ID INT, IN faculty_ID INT, IN room_ID INT, IN day ENUM('M', 'T', 'W', 'Th', 'F', 'S'), IN start_time TIME, IN duration INT)
 BEGIN
