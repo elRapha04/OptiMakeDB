@@ -248,4 +248,124 @@ END $$
 
 DELIMITER ;
 
--- DUMMY DATA FOR TESTING
+-- DUMMY DATA FOR TESTING=================================================================================================================
+
+-- INSERT DUMMY DATA========================================
+DELIMITER $$
+
+CREATE PROCEDURE InsertAllData()
+BEGIN
+  INSERT INTO University (university_name) VALUES
+  ('University A'),
+  ('University B'),
+  ('University C'),
+  ('University D'),
+  ('University E');
+  
+  INSERT INTO Campus (campus_name, university_ID) VALUES
+  ('Campus A1', 1),
+  ('Campus B1', 2),
+  ('Campus C1', 3),
+  ('Campus D1', 4),
+  ('Campus E1', 5);
+  
+  INSERT INTO College (college_name, campus_ID) VALUES
+  ('College A1', 1),
+  ('College B1', 2),
+  ('College C1', 3),
+  ('College D1', 4),
+  ('College E1', 5);
+  
+  INSERT INTO Department (department_name, college_ID) VALUES
+  ('Department A1', 1),
+  ('Department B1', 2),
+  ('Department C1', 3),
+  ('Department D1', 4),
+  ('Department E1', 5);
+  
+  INSERT INTO Faculty (first_name, last_name, units, available_time_slots, birthdate, age, gender, contact_number, email, address) VALUES
+  ('John', 'Doe', 3, 'MWF 9:00-12:00', '1985-03-25', 40, 'Male', '0917123456', 'john.doe@example.com', '123 Main St'),
+  ('Jane', 'Smith', 4, 'TTh 10:00-1:00', '1987-04-15', 38, 'Female', '0917123457', 'jane.smith@example.com', '456 Oak St'),
+  ('James', 'Brown', 3, 'MWF 1:00-4:00', '1990-07-20', 34, 'Male', '0917123458', 'james.brown@example.com', '789 Pine St'),
+  ('Emily', 'Jones', 2, 'TTh 9:00-12:00', '1992-11-05', 32, 'Female', '0917123459', 'emily.jones@example.com', '101 Maple St'),
+  ('Michael', 'Davis', 3, 'MWF 2:00-5:00', '1984-02-18', 41, 'Male', '0917123460', 'michael.davis@example.com', '202 Birch St');
+  
+  INSERT INTO Room (room_no, room_name, building_no, building_name, floor_no, college_ID) VALUES
+  (101, 'Room A101', 1, 'Building A', 1, 1),
+  (102, 'Room A102', 1, 'Building A', 1, 2),
+  (201, 'Room B201', 2, 'Building B', 2, 3),
+  (202, 'Room B202', 2, 'Building B', 2, 4),
+  (301, 'Room C301', 3, 'Building C', 3, 5);
+  
+  INSERT INTO Section (section_name, department_ID) VALUES
+  ('Section A1', 1),
+  ('Section B1', 2),
+  ('Section C1', 3),
+  ('Section D1', 4),
+  ('Section E1', 5);
+  
+  INSERT INTO Course (course_code, course_title, units, section_ID) VALUES
+  ('CS101', 'Introduction to Computer Science', 3, 1),
+  ('CS102', 'Data Structures', 3, 2),
+  ('CS103', 'Algorithms', 3, 3),
+  ('CS104', 'Software Engineering', 3, 4),
+  ('CS105', 'Operating Systems', 3, 5);
+  
+  INSERT INTO Schedule (section_ID, course_ID, faculty_ID, room_ID, day, start_time, duration) VALUES
+  (1, 1, 1, 1, 'M', '09:00:00', 60),
+  (2, 2, 2, 2, 'T', '10:00:00', 60),
+  (3, 3, 3, 3, 'W', '11:00:00', 60),
+  (4, 4, 4, 4, 'Th', '14:00:00', 60),
+  (5, 5, 5, 5, 'F', '13:00:00', 60);
+  
+END$$
+
+-- DELETE DUMMY DATA===============================================================
+
+-- Procedure to delete all dummy data from all tables
+CREATE PROCEDURE DeleteAllData()
+BEGIN
+    DELETE FROM Schedule;
+
+    DELETE FROM Course;
+
+    DELETE FROM Section;
+
+    DELETE FROM Room;
+
+    DELETE FROM Faculty;
+
+    DELETE FROM Department;
+
+    DELETE FROM College;
+
+    DELETE FROM Campus;
+
+    DELETE FROM University;
+END $$
+
+-- SHOW ALL TABLES========================================
+
+-- Procedure to display all dummy data from all tables
+CREATE PROCEDURE ShowAllTables()
+BEGIN
+    SELECT * FROM Schedule;
+
+    SELECT * FROM Course;
+
+    SELECT * FROM Section;
+
+    SELECT * FROM Room;
+
+    SELECT * FROM Faculty;
+
+    SELECT * FROM Department;
+
+    SELECT * FROM College;
+
+    SELECT * FROM Campus;
+
+    SELECT * FROM University;
+END $$
+
+DELIMITER ;
