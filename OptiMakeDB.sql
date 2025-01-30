@@ -11,6 +11,8 @@ CREATE TABLE IF NOT EXISTS `Campus` (
   `campus_ID` INT AUTO_INCREMENT,
   `campus_name` VARCHAR(255) NOT NULL,
   `university_ID` INT NOT NULL,
+  `longitude` ,
+  `latitude` ,
   PRIMARY KEY (`campus_ID`),
   FOREIGN KEY (`university_ID`) REFERENCES `University`(`university_ID`)
 );
@@ -42,10 +44,57 @@ CREATE TABLE IF NOT EXISTS `Faculty` (
   `gender` ENUM('Male', 'Female', 'Other') NOT NULL,
   `contact_number` VARCHAR(255) NOT NULL,
   `email` VARCHAR(255) UNIQUE NOT NULL,
-  `address` VARCHAR(255) NOT NULL,
   PRIMARY KEY (`faculty_ID`)
 );
 
+CREATE TABLE IF NOT EXISTS `Administrator` (
+  `admin_ID` INT AUTO_INCREMENT NOT NULL,
+  `first_name` VARCHAR(255) NOT NULL,
+  `last_name` VARCHAR(255) NOT NULL,
+  `birthdate` DATE NOT NULL,
+  `age` TINYINT UNSIGNED NOT NULL,
+  `gender` ENUM('Male', 'Female', 'Other') NOT NULL,
+  `contact_number` VARCHAR(255) NOT NULL,
+  `email` VARCHAR(255) UNIQUE NOT NULL,
+  `university_ID` INT NOT NULL,
+  `campus_ID` INT NOT NULL,
+  --FKs
+  PRIMARY KEY (`admin_ID`)
+);
+
+CREATE TABLE IF NOT EXISTS `Dean` (
+  `dean_ID` INT AUTO_INCREMENT NOT NULL,
+  `first_name` VARCHAR(255) NOT NULL,
+  `last_name` VARCHAR(255) NOT NULL,
+  `birthdate` DATE NOT NULL,
+  `age` TINYINT UNSIGNED NOT NULL,
+  `gender` ENUM('Male', 'Female', 'Other') NOT NULL,
+  `contact_number` VARCHAR(255) NOT NULL,
+  `email` VARCHAR(255) UNIQUE NOT NULL,
+  `university_ID` INT NOT NULL,
+  `campus_ID` INT NOT NULL,
+  `college_ID` INT NOT NULL,
+  --FKs
+  PRIMARY KEY (`dean_ID`)
+);
+
+CREATE TABLE IF NOT EXISTS `Chairperson` (
+  `chairperson_ID` INT AUTO_INCREMENT NOT NULL,
+  `first_name` VARCHAR(255) NOT NULL,
+  `last_name` VARCHAR(255) NOT NULL,
+  `birthdate` DATE NOT NULL,
+  `age` TINYINT UNSIGNED NOT NULL,
+  `gender` ENUM('Male', 'Female', 'Other') NOT NULL,
+  `contact_number` VARCHAR(255) NOT NULL,
+  `email` VARCHAR(255) UNIQUE NOT NULL,
+  `university_ID` INT NOT NULL,
+  `campus_ID` INT NOT NULL,
+  `college_ID` INT NOT NULL,
+  `department_ID` INT NOT NULL,
+  --FKs
+  PRIMARY KEY (`chairperson_ID`)
+);
+-- ---------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `Room` (
   `room_ID` INT AUTO_INCREMENT,
   `room_no` INT UNSIGNED NOT NULL,
