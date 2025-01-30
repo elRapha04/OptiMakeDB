@@ -66,7 +66,6 @@ CREATE TABLE IF NOT EXISTS `Section` (
   FOREIGN KEY (`department_ID`) REFERENCES `Department`(`department_ID`)
 );
 
--- QUESTION: separate units to lab and lecture?
 CREATE TABLE IF NOT EXISTS `Course` (
   `course_ID` INT AUTO_INCREMENT,
   `course_code` VARCHAR(255) NOT NULL,
@@ -77,7 +76,6 @@ CREATE TABLE IF NOT EXISTS `Course` (
   FOREIGN KEY (`section_ID`) REFERENCES `Section`(`section_ID`)
 );
 
--- QUESTION: add `type` enum(lab, lecture)?
 CREATE TABLE IF NOT EXISTS `Schedule` (
   `schedule_ID` INT AUTO_INCREMENT,
   `section_ID` INT NOT NULL,
