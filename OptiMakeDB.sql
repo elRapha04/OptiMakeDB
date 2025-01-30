@@ -93,3 +93,4 @@ CREATE TABLE IF NOT EXISTS `Schedule` (
   FOREIGN KEY (`course_ID`) REFERENCES `Course`(`course_ID`),
   FOREIGN KEY (`section_ID`) REFERENCES `Section`(`section_ID`)
 );
+--
