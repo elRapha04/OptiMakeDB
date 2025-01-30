@@ -47,6 +47,14 @@ CREATE TABLE IF NOT EXISTS `Faculty` (
   PRIMARY KEY (`faculty_ID`)
 );
 
+CREATE TABLE IF NOT EXISTS `Faculty_AvailableTimeSlots`(
+  `faculty_ID` INT,
+  `day` ENUM('M', 'T', 'W', 'Th', 'F', 'S') NOT NULL,
+  `start_time` TIME NOT NULL,
+  `end_time` TIME NOT NULL
+  FOREIGN KEY (`faculty_ID`) REFERENCES `Faculty`(`faculty_ID`),
+);
+
 CREATE TABLE IF NOT EXISTS `Administrator` (
   `admin_ID` INT AUTO_INCREMENT NOT NULL,
   `first_name` VARCHAR(255) NOT NULL,
