@@ -175,8 +175,6 @@ CREATE TABLE IF NOT EXISTS `Course_Section` (
   FOREIGN KEY (`section_ID`) REFERENCES `Section`(`section_ID`)
 );
 
--- ---------------------------------------------------------------
--- QUESTION: add `type` enum(lab, lecture)?
 CREATE TABLE IF NOT EXISTS `Schedule` (
   `schedule_ID` INT AUTO_INCREMENT,
   `section_ID` INT NOT NULL,
