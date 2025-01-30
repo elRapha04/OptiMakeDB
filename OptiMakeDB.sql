@@ -265,12 +265,10 @@ BEGIN
     RETURN conflict;
 END $$
 
-DELIMITER ;
 
 -- ================================================
 -- STORED PROCEDURES
 -- ================================================
-DELIMITER $$
 
 -- Procedure: Add a new schedule entry for a specific course and section
 CREATE PROCEDURE AddSchedule(IN section_ID INT, IN course_ID INT, IN faculty_ID INT, IN room_ID INT, IN day ENUM('M', 'T', 'W', 'Th', 'F', 'S'), IN start_time TIME, IN duration INT)
