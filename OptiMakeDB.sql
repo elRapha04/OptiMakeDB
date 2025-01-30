@@ -11,8 +11,8 @@ CREATE TABLE IF NOT EXISTS `Campus` (
   `campus_ID` INT AUTO_INCREMENT,
   `campus_name` VARCHAR(255) NOT NULL,
   `university_ID` INT NOT NULL,
-  `longitude` ,
-  `latitude` ,
+  `latitude` DECIMAL(9,6),
+  `longitude` DECIMAL(9,6),
   PRIMARY KEY (`campus_ID`),
   FOREIGN KEY (`university_ID`) REFERENCES `University`(`university_ID`)
 );
@@ -113,8 +113,8 @@ CREATE TABLE IF NOT EXISTS `Building` (
   `building_ID` INT AUTO_INCREMENT,
   `building_no` INT,
   `building_name` VARCHAR,
-  `longitude` ,
-  `latitude` ,
+  `latitude` DECIMAL(9,6),
+  `longitude` DECIMAL(9,6),
   PRIMARY KEY (`building_ID`)
 );
 
