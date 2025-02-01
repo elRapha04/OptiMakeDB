@@ -11,6 +11,8 @@ CREATE TABLE IF NOT EXISTS `Campus` (
   `campus_ID` INT AUTO_INCREMENT,
   `campus_name` VARCHAR(255) NOT NULL,
   `university_ID` INT NOT NULL,
+  `latitude` DECIMAL(9,6),
+  `longitude` DECIMAL(9,6),
   PRIMARY KEY (`campus_ID`),
   FOREIGN KEY (`university_ID`) REFERENCES `University`(`university_ID`)
 );
@@ -42,27 +44,113 @@ CREATE TABLE IF NOT EXISTS `Faculty` (
   `gender` ENUM('Male', 'Female', 'Other') NOT NULL,
   `contact_number` VARCHAR(255) NOT NULL,
   `email` VARCHAR(255) UNIQUE NOT NULL,
-  `address` VARCHAR(255) NOT NULL,
   PRIMARY KEY (`faculty_ID`)
 );
 
+CREATE TABLE IF NOT EXISTS `Faculty_AvailableTimeSlots`(
+  `faculty_ID` INT,
+  `day` ENUM('M', 'T', 'W', 'Th', 'F', 'S') NOT NULL,
+  `start_time` TIME NOT NULL,
+  `end_time` TIME NOT NULL
+  FOREIGN KEY (`faculty_ID`) REFERENCES `Faculty`(`faculty_ID`),
+);
+
+CREATE TABLE IF NOT EXISTS `Administrator` (
+  `admin_ID` INT AUTO_INCREMENT NOT NULL,
+  `university_ID` INT NOT NULL,
+  `campus_ID` INT NOT NULL,
+  PRIMARY KEY (`admin_ID`),
+  FOREIGN KEY (`university_ID`) REFERENCES `University`(`university_ID`),
+  FOREIGN KEY (`campus_ID`) REFERENCES `Campus`(`campus_ID`)
+);
+
+CREATE TABLE IF NOT EXISTS `Dean` (
+  `dean_ID` INT AUTO_INCREMENT NOT NULL,
+  `university_ID` INT NOT NULL,
+  `campus_ID` INT NOT NULL,
+  `college_ID` INT NOT NULL,
+  PRIMARY KEY (`dean_ID`),
+  FOREIGN KEY (`university_ID`) REFERENCES `University`(`university_ID`),
+  FOREIGN KEY (`campus_ID`) REFERENCES `Campus`(`campus_ID`),
+  FOREIGN KEY (`college_ID`) REFERENCES `College`(`college_ID`)
+);
+
+CREATE TABLE IF NOT EXISTS `Chairperson` (
+  `chairperson_ID` INT AUTO_INCREMENT NOT NULL,
+  `university_ID` INT NOT NULL,
+  `campus_ID` INT NOT NULL,
+  `college_ID` INT NOT NULL,
+  `department_ID` INT NOT NULL,
+  PRIMARY KEY (`chairperson_ID`),
+  FOREIGN KEY (`university_ID`) REFERENCES `University`(`university_ID`),
+  FOREIGN KEY (`campus_ID`) REFERENCES `Campus`(`campus_ID`),
+  FOREIGN KEY (`college_ID`) REFERENCES `College`(`college_ID`),
+  FOREIGN KEY (`department_ID`) REFERENCES `Department`(`department_ID`)
+);
+
+-- EDIT ROLE ATTRIB NAME
+CREATE TABLE IF NOT EXISTS `Account` (
+  `username` VARCHAR(255) UNIQUE NOT NULL,
+  `password` VARCHAR(255) NOT NULL,
+  `role` ENUM('Admin', 'Dean', 'Chairperson') NOT NULL,
+  `first_name` VARCHAR(255) NOT NULL,
+  `last_name` VARCHAR(255) NOT NULL,
+  `birthdate` DATE NOT NULL,
+  `age` TINYINT UNSIGNED NOT NULL,
+  `gender` ENUM('Male', 'Female', 'Other') NOT NULL,
+  `contact_number` VARCHAR(255) NOT NULL,
+  `email` VARCHAR(255) UNIQUE NOT NULL,
+);
+
+
+CREATE TABLE IF NOT EXISTS `Building` (
+  `building_ID` INT AUTO_INCREMENT,
+  `building_no` INT,
+  `building_name` VARCHAR,
+  `latitude` DECIMAL(9,6),
+  `longitude` DECIMAL(9,6),
+  PRIMARY KEY (`building_ID`)
+);
+
+CREATE TABLE IF NOT EXISTS `Apparatus` (
+  `apparatus_ID` INT AUTO_INCREMENT,
+  `apparatus_name` VARCHAR(255) NOT NULL,
+  PRIMARY KEY (`apparatus_ID`)
+);
+
+CREATE TABLE IF NOT EXISTS `Room_Apparatus` (
+  `room_ID` INT NOT NULL,
+  `apparatus_ID` INT NOT NULL,
+  FOREIGN KEY (`room_ID`) REFERENCES `Room`(`room_ID`),
+  FOREIGN KEY (`apparatus_ID`) REFERENCES `Apparatus`(`apparatus_ID`)
+);
+
+-- ref to room_app table?
+-- college_ID?
 CREATE TABLE IF NOT EXISTS `Room` (
   `room_ID` INT AUTO_INCREMENT,
   `room_no` INT UNSIGNED NOT NULL,
   `room_name` VARCHAR(255),
-  `building_no` INT UNSIGNED NOT NULL,
-  `building_name` VARCHAR(255),
+  `building_ID` INT NOT NULL,
   `floor_no` TINYINT UNSIGNED NOT NULL,
   `college_ID` INT,
   PRIMARY KEY (`room_ID`),
+  FOREIGN KEY (`building_ID`) REFERENCES `Building`(`building_ID`),
   FOREIGN KEY (`college_ID`) REFERENCES `College`(`college_ID`)
 );
 
+-- why include UCCD?
 CREATE TABLE IF NOT EXISTS `Section` (
   `section_ID` INT AUTO_INCREMENT,
   `section_name` VARCHAR(255) NOT NULL,
+  `university_ID` INT NOT NULL,
+  `campus_ID` INT NOT NULL,
+  `college_ID` INT NOT NULL,
   `department_ID` INT NOT NULL,
   PRIMARY KEY (`section_ID`),
+  FOREIGN KEY (`university_ID`) REFERENCES `University`(`university_ID`),
+  FOREIGN KEY (`campus_ID`) REFERENCES `Campus`(`campus_ID`),
+  FOREIGN KEY (`college_ID`) REFERENCES `College`(`college_ID`),
   FOREIGN KEY (`department_ID`) REFERENCES `Department`(`department_ID`)
 );
 
@@ -71,8 +159,13 @@ CREATE TABLE IF NOT EXISTS `Course` (
   `course_code` VARCHAR(255) NOT NULL,
   `course_title` VARCHAR(255) NOT NULL,
   `units` TINYINT UNSIGNED NOT NULL,
-  `section_ID` INT,
-  PRIMARY KEY (`course_ID`),
+  PRIMARY KEY (`course_ID`)
+);
+
+CREATE TABLE IF NOT EXISTS `Course_Section` (
+  `course_ID` INT NOT NULL,
+  `section_ID` INT NOT NULL,
+  FOREIGN KEY (`course_ID`) REFERENCES `Course`(`course_ID`),
   FOREIGN KEY (`section_ID`) REFERENCES `Section`(`section_ID`)
 );
 
@@ -84,7 +177,7 @@ CREATE TABLE IF NOT EXISTS `Schedule` (
   `room_ID` INT,
   `day` ENUM('M', 'T', 'W', 'Th', 'F', 'S') NOT NULL,
   `start_time` TIME NOT NULL,
-  `duration` INT NOT NULL,
+  `duration` DECIMAL NOT NULL,
   PRIMARY KEY (`schedule_ID`),
   FOREIGN KEY (`room_ID`) REFERENCES `Room`(`room_ID`),
   FOREIGN KEY (`faculty_ID`) REFERENCES `Faculty`(`faculty_ID`),
@@ -166,12 +259,10 @@ BEGIN
     RETURN conflict;
 END $$
 
-DELIMITER ;
 
 -- ================================================
 -- STORED PROCEDURES
 -- ================================================
-DELIMITER $$
 
 -- Procedure: Add a new schedule entry for a specific course and section
 CREATE PROCEDURE AddSchedule(IN section_ID INT, IN course_ID INT, IN faculty_ID INT, IN room_ID INT, IN day ENUM('M', 'T', 'W', 'Th', 'F', 'S'), IN start_time TIME, IN duration INT)
