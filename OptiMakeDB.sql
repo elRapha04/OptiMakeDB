@@ -109,6 +109,8 @@ CREATE TABLE IF NOT EXISTS `Chairperson` (
   FOREIGN KEY (`department_ID`) REFERENCES `Department`(`department_ID`)
 );
 
+
+
 CREATE TABLE IF NOT EXISTS `Building` (
   `building_ID` INT AUTO_INCREMENT,
   `building_no` INT,
