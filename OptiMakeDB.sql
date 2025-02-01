@@ -57,13 +57,6 @@ CREATE TABLE IF NOT EXISTS `Faculty_AvailableTimeSlots`(
 
 CREATE TABLE IF NOT EXISTS `Administrator` (
   `admin_ID` INT AUTO_INCREMENT NOT NULL,
-  `first_name` VARCHAR(255) NOT NULL,
-  `last_name` VARCHAR(255) NOT NULL,
-  `birthdate` DATE NOT NULL,
-  `age` TINYINT UNSIGNED NOT NULL,
-  `gender` ENUM('Male', 'Female', 'Other') NOT NULL,
-  `contact_number` VARCHAR(255) NOT NULL,
-  `email` VARCHAR(255) UNIQUE NOT NULL,
   `university_ID` INT NOT NULL,
   `campus_ID` INT NOT NULL,
   PRIMARY KEY (`admin_ID`),
@@ -73,13 +66,6 @@ CREATE TABLE IF NOT EXISTS `Administrator` (
 
 CREATE TABLE IF NOT EXISTS `Dean` (
   `dean_ID` INT AUTO_INCREMENT NOT NULL,
-  `first_name` VARCHAR(255) NOT NULL,
-  `last_name` VARCHAR(255) NOT NULL,
-  `birthdate` DATE NOT NULL,
-  `age` TINYINT UNSIGNED NOT NULL,
-  `gender` ENUM('Male', 'Female', 'Other') NOT NULL,
-  `contact_number` VARCHAR(255) NOT NULL,
-  `email` VARCHAR(255) UNIQUE NOT NULL,
   `university_ID` INT NOT NULL,
   `campus_ID` INT NOT NULL,
   `college_ID` INT NOT NULL,
@@ -91,13 +77,6 @@ CREATE TABLE IF NOT EXISTS `Dean` (
 
 CREATE TABLE IF NOT EXISTS `Chairperson` (
   `chairperson_ID` INT AUTO_INCREMENT NOT NULL,
-  `first_name` VARCHAR(255) NOT NULL,
-  `last_name` VARCHAR(255) NOT NULL,
-  `birthdate` DATE NOT NULL,
-  `age` TINYINT UNSIGNED NOT NULL,
-  `gender` ENUM('Male', 'Female', 'Other') NOT NULL,
-  `contact_number` VARCHAR(255) NOT NULL,
-  `email` VARCHAR(255) UNIQUE NOT NULL,
   `university_ID` INT NOT NULL,
   `campus_ID` INT NOT NULL,
   `college_ID` INT NOT NULL,
@@ -109,6 +88,19 @@ CREATE TABLE IF NOT EXISTS `Chairperson` (
   FOREIGN KEY (`department_ID`) REFERENCES `Department`(`department_ID`)
 );
 
+-- EDIT ROLE ATTRIB NAME
+CREATE TABLE IF NOT EXISTS `Account` (
+  `username` VARCHAR(255) UNIQUE NOT NULL,
+  `password` VARCHAR(255) NOT NULL,
+  `role` ENUM('Admin', 'Dean', 'Chairperson') NOT NULL,
+  `first_name` VARCHAR(255) NOT NULL,
+  `last_name` VARCHAR(255) NOT NULL,
+  `birthdate` DATE NOT NULL,
+  `age` TINYINT UNSIGNED NOT NULL,
+  `gender` ENUM('Male', 'Female', 'Other') NOT NULL,
+  `contact_number` VARCHAR(255) NOT NULL,
+  `email` VARCHAR(255) UNIQUE NOT NULL,
+);
 
 
 CREATE TABLE IF NOT EXISTS `Building` (
