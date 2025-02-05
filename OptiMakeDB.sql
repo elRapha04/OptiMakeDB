@@ -88,7 +88,6 @@ CREATE TABLE IF NOT EXISTS `Chairperson` (
   FOREIGN KEY (`department_ID`) REFERENCES `Department`(`department_ID`)
 );
 
--- EDIT ROLE ATTRIB NAME
 CREATE TABLE IF NOT EXISTS `Account` (
   `username` VARCHAR(255) UNIQUE NOT NULL,
   `password` VARCHAR(255) NOT NULL,
