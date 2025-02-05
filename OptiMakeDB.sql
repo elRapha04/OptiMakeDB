@@ -34,11 +34,10 @@ CREATE TABLE IF NOT EXISTS `Department` (
 );
 
 CREATE TABLE IF NOT EXISTS `Faculty` (
-  `faculty_ID` INT AUTO_INCREMENT NOT NULL,
+  `faculty_ID` INT AUTO_INCREMENT,
   `first_name` VARCHAR(255) NOT NULL,
   `last_name` VARCHAR(255) NOT NULL,
   `units` TINYINT UNSIGNED NOT NULL,
-  `available_time_slots` VARCHAR(255) NOT NULL,
   `birthdate` DATE NOT NULL,
   `age` TINYINT UNSIGNED NOT NULL,
   `gender` ENUM('Male', 'Female', 'Other') NOT NULL,
@@ -47,41 +46,48 @@ CREATE TABLE IF NOT EXISTS `Faculty` (
   PRIMARY KEY (`faculty_ID`)
 );
 
-CREATE TABLE IF NOT EXISTS `Faculty_AvailableTimeSlots`(
+CREATE TABLE IF NOT EXISTS `Faculty_Availability`(
   `faculty_ID` INT,
   `day` ENUM('M', 'T', 'W', 'Th', 'F', 'S') NOT NULL,
   `start_time` TIME NOT NULL,
-  `end_time` TIME NOT NULL
+  `duration` DECIMAL NOT NULL,
+  `end_time` TIME NOT NULL,
   FOREIGN KEY (`faculty_ID`) REFERENCES `Faculty`(`faculty_ID`),
 );
 
 CREATE TABLE IF NOT EXISTS `Administrator` (
-  `admin_ID` INT AUTO_INCREMENT NOT NULL,
+  `admin_ID` INT AUTO_INCREMENT,
+  `account_ID` INT NOT NULL,
   `university_ID` INT NOT NULL,
   `campus_ID` INT NOT NULL,
   PRIMARY KEY (`admin_ID`),
+  FOREIGN KEY (`account_ID`) REFERENCES `Account`(`account_ID`),
   FOREIGN KEY (`university_ID`) REFERENCES `University`(`university_ID`),
   FOREIGN KEY (`campus_ID`) REFERENCES `Campus`(`campus_ID`)
 );
 
 CREATE TABLE IF NOT EXISTS `Dean` (
-  `dean_ID` INT AUTO_INCREMENT NOT NULL,
+  `dean_ID` INT AUTO_INCREMENT,
+  `account_ID` INT NOT NULL,
   `university_ID` INT NOT NULL,
   `campus_ID` INT NOT NULL,
   `college_ID` INT NOT NULL,
   PRIMARY KEY (`dean_ID`),
+  FOREIGN KEY (`account_ID`) REFERENCES `Account`(`account_ID`),
   FOREIGN KEY (`university_ID`) REFERENCES `University`(`university_ID`),
   FOREIGN KEY (`campus_ID`) REFERENCES `Campus`(`campus_ID`),
   FOREIGN KEY (`college_ID`) REFERENCES `College`(`college_ID`)
 );
 
 CREATE TABLE IF NOT EXISTS `Chairperson` (
-  `chairperson_ID` INT AUTO_INCREMENT NOT NULL,
+  `chairperson_ID` INT AUTO_INCREMENT,
+  `account_ID` INT NOT NULL,
   `university_ID` INT NOT NULL,
   `campus_ID` INT NOT NULL,
   `college_ID` INT NOT NULL,
   `department_ID` INT NOT NULL,
   PRIMARY KEY (`chairperson_ID`),
+  FOREIGN KEY (`account_ID`) REFERENCES `Account`(`account_ID`),
   FOREIGN KEY (`university_ID`) REFERENCES `University`(`university_ID`),
   FOREIGN KEY (`campus_ID`) REFERENCES `Campus`(`campus_ID`),
   FOREIGN KEY (`college_ID`) REFERENCES `College`(`college_ID`),
@@ -89,9 +95,10 @@ CREATE TABLE IF NOT EXISTS `Chairperson` (
 );
 
 CREATE TABLE IF NOT EXISTS `Account` (
+  `account_ID` INT AUTO_INCREMENT,
   `username` VARCHAR(255) UNIQUE NOT NULL,
   `password` VARCHAR(255) NOT NULL,
-  `role` ENUM('Admin', 'Dean', 'Chairperson') NOT NULL,
+  `role` ENUM('Administrator', 'Dean', 'Chairperson') NOT NULL,
   `first_name` VARCHAR(255) NOT NULL,
   `last_name` VARCHAR(255) NOT NULL,
   `birthdate` DATE NOT NULL,
@@ -99,6 +106,7 @@ CREATE TABLE IF NOT EXISTS `Account` (
   `gender` ENUM('Male', 'Female', 'Other') NOT NULL,
   `contact_number` VARCHAR(255) NOT NULL,
   `email` VARCHAR(255) UNIQUE NOT NULL,
+  PRIMARY KEY (`account_ID`)
 );
 
 
@@ -106,9 +114,11 @@ CREATE TABLE IF NOT EXISTS `Building` (
   `building_ID` INT AUTO_INCREMENT,
   `building_no` INT,
   `building_name` VARCHAR,
+  `college_ID` INT,
   `latitude` DECIMAL(9,6),
   `longitude` DECIMAL(9,6),
-  PRIMARY KEY (`building_ID`)
+  PRIMARY KEY (`building_ID`),
+  FOREIGN KEY (`college_ID`) REFERENCES `College`(`college_ID`)
 );
 
 CREATE TABLE IF NOT EXISTS `Apparatus` (
@@ -117,7 +127,6 @@ CREATE TABLE IF NOT EXISTS `Apparatus` (
   PRIMARY KEY (`apparatus_ID`)
 );
 
--- college_ID?
 CREATE TABLE IF NOT EXISTS `Room` (
   `room_ID` INT AUTO_INCREMENT,
   `room_no` INT UNSIGNED NOT NULL,
@@ -125,17 +134,15 @@ CREATE TABLE IF NOT EXISTS `Room` (
   `building_ID` INT NOT NULL,
   `floor_no` TINYINT UNSIGNED NOT NULL,
   `apparatus_ID` INT,
-  `college_ID` INT,
   PRIMARY KEY (`room_ID`),
   FOREIGN KEY (`apparatus_ID`) REFERENCES `Apparatus`(`apparatus_ID`),
-  FOREIGN KEY (`building_ID`) REFERENCES `Building`(`building_ID`),
-  FOREIGN KEY (`college_ID`) REFERENCES `College`(`college_ID`)
+  FOREIGN KEY (`building_ID`) REFERENCES `Building`(`building_ID`)
 );
 
--- why include UCCD?
 CREATE TABLE IF NOT EXISTS `Section` (
   `section_ID` INT AUTO_INCREMENT,
   `section_name` VARCHAR(255) NOT NULL,
+  `year_level` ENUM('1st', '2nd', '3rd', '4th', '5th') NOT NULL,
   `university_ID` INT NOT NULL,
   `campus_ID` INT NOT NULL,
   `college_ID` INT NOT NULL,
@@ -171,6 +178,7 @@ CREATE TABLE IF NOT EXISTS `Schedule` (
   `day` ENUM('M', 'T', 'W', 'Th', 'F', 'S') NOT NULL,
   `start_time` TIME NOT NULL,
   `duration` DECIMAL NOT NULL,
+  `end_time` TIME NOT NULL,
   PRIMARY KEY (`schedule_ID`),
   FOREIGN KEY (`room_ID`) REFERENCES `Room`(`room_ID`),
   FOREIGN KEY (`faculty_ID`) REFERENCES `Faculty`(`faculty_ID`),
