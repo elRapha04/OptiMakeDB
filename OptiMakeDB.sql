@@ -118,14 +118,6 @@ CREATE TABLE IF NOT EXISTS `Apparatus` (
   PRIMARY KEY (`apparatus_ID`)
 );
 
-CREATE TABLE IF NOT EXISTS `Room_Apparatus` (
-  `room_ID` INT NOT NULL,
-  `apparatus_ID` INT NOT NULL,
-  FOREIGN KEY (`room_ID`) REFERENCES `Room`(`room_ID`),
-  FOREIGN KEY (`apparatus_ID`) REFERENCES `Apparatus`(`apparatus_ID`)
-);
-
--- ref to room_app table?
 -- college_ID?
 CREATE TABLE IF NOT EXISTS `Room` (
   `room_ID` INT AUTO_INCREMENT,
@@ -133,8 +125,10 @@ CREATE TABLE IF NOT EXISTS `Room` (
   `room_name` VARCHAR(255),
   `building_ID` INT NOT NULL,
   `floor_no` TINYINT UNSIGNED NOT NULL,
+  `apparatus_ID` INT,
   `college_ID` INT,
   PRIMARY KEY (`room_ID`),
+  FOREIGN KEY (`apparatus_ID`) REFERENCES `Apparatus`(`apparatus_ID`),
   FOREIGN KEY (`building_ID`) REFERENCES `Building`(`building_ID`),
   FOREIGN KEY (`college_ID`) REFERENCES `College`(`college_ID`)
 );
