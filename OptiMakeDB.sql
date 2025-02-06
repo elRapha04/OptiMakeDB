@@ -156,7 +156,7 @@ CREATE TABLE IF NOT EXISTS `Section` (
 
 CREATE TABLE IF NOT EXISTS `Course` (
   `course_ID` INT AUTO_INCREMENT,
-  `course_code` VARCHAR(255) NOT NULL,
+  `course_code` VARCHAR(255) UNIQUE NOT NULL,
   `course_title` VARCHAR(255) NOT NULL,
   `units` TINYINT UNSIGNED NOT NULL,
   PRIMARY KEY (`course_ID`)
@@ -169,6 +169,7 @@ CREATE TABLE IF NOT EXISTS `Course_Section` (
   FOREIGN KEY (`section_ID`) REFERENCES `Section`(`section_ID`)
 );
 
+-- to Q: Is duration in bulk or chunks? subtract/scratch out?
 CREATE TABLE IF NOT EXISTS `Schedule` (
   `schedule_ID` INT AUTO_INCREMENT,
   `section_ID` INT NOT NULL,
