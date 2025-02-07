@@ -169,7 +169,8 @@ CREATE TABLE IF NOT EXISTS `Course_Section` (
   FOREIGN KEY (`section_ID`) REFERENCES `Section`(`section_ID`)
 );
 
--- to Q: Is duration in bulk or chunks? subtract/scratch out?
+-- to Q: Is duration in bulk or chunks? subtract/scratch out? 
+-- ANS: chunks; make them not overlap
 CREATE TABLE IF NOT EXISTS `Schedule` (
   `schedule_ID` INT AUTO_INCREMENT,
   `section_ID` INT NOT NULL,
