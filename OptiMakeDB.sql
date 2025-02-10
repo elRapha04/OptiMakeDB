@@ -109,6 +109,11 @@ CREATE TABLE IF NOT EXISTS `Account` (
   PRIMARY KEY (`account_ID`)
 );
 
+--Insert Hash Table
+CREATE TABLE IF NOT EXISTS `` (
+  
+);
+
 
 CREATE TABLE IF NOT EXISTS `Building` (
   `building_ID` INT AUTO_INCREMENT,
