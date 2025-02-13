@@ -109,10 +109,20 @@ CREATE TABLE IF NOT EXISTS `Account` (
   PRIMARY KEY (`account_ID`)
 );
 
---Insert Hash Table
-CREATE TABLE IF NOT EXISTS `` (
-  
+--Insert Hash Table (to be checked and modified)
+CREATE TABLE IF NOT EXISTS `Role_Hashes` (
+  `hash_ID` INT AUTO_INCREMENT,
+  `account_ID` INT NOT NULL, -- The user this hash belongs to
+  `issued_by` INT NOT NULL,  -- The higher-level user who issued the hash
+  `role` ENUM('Administrator', 'Dean', 'Chairperson') NOT NULL, -- Role of the user
+  `hash_value` VARCHAR(255) NOT NULL, -- The hash itself
+  `status` ENUM('Enabled', 'Disabled') DEFAULT 'Enabled', -- Controls if the hash is active
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (`account_ID`) REFERENCES `Account`(`account_ID`) ON DELETE CASCADE,
+  FOREIGN KEY (`issued_by`) REFERENCES `Account`(`account_ID`) ON DELETE SET NULL,
+  PRIMARY KEY (`hash_ID`)
 );
+
 
 
 CREATE TABLE IF NOT EXISTS `Building` (
