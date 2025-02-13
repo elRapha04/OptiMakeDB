@@ -1,3 +1,15 @@
+/* 
+TODOS:
+  - hash table
+  - Sync with schema
+  - accounts link
+  - dedic/shared building
+  - funcs and procedures
+  - Normalize
+  - data types
+  - on delete
+*/
+
 CREATE DATABASE IF NOT EXISTS optimakeDB;
 USE optimakeDB;
 
@@ -109,7 +121,7 @@ CREATE TABLE IF NOT EXISTS `Account` (
   PRIMARY KEY (`account_ID`)
 );
 
---Insert Hash Table (to be checked and modified)
+-- ai generated Hash Table(to be checked and modified)
 CREATE TABLE IF NOT EXISTS `Role_Hashes` (
   `hash_ID` INT AUTO_INCREMENT,
   `account_ID` INT NOT NULL, -- The user this hash belongs to
