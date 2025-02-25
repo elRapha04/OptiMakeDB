@@ -121,8 +121,8 @@ CREATE TABLE IF NOT EXISTS `Account` (
   PRIMARY KEY (`account_ID`)
 );
 
--- ai generated Hash Table(to be checked and modified)
-CREATE TABLE IF NOT EXISTS `Role_Hashes` (
+-- AI-generated Hash Table(to be checked and modified)
+CREATE TABLE IF NOT EXISTS `Hash` (
   `hash_ID` INT AUTO_INCREMENT,
   `account_ID` INT NOT NULL, -- The user this hash belongs to
   `issued_by` INT NOT NULL,  -- The higher-level user who issued the hash
