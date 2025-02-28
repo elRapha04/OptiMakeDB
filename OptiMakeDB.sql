@@ -1,11 +1,11 @@
 /* 
 TODOS:
-  - hash table
-  - Sync with schema
-  - accounts link
-  - dedic/shared building
-  - funcs and procedures
+- hash table
+- Sync with schema
+- accounts link
+- dedic/shared building
   - Normalize
+  - funcs and procedures
   - data types
   - on delete
 */
@@ -121,21 +121,18 @@ CREATE TABLE IF NOT EXISTS `Account` (
   PRIMARY KEY (`account_ID`)
 );
 
--- AI-generated Hash Table(to be checked and modified)
 CREATE TABLE IF NOT EXISTS `Hash` (
   `hash_ID` INT AUTO_INCREMENT,
-  `account_ID` INT NOT NULL, -- The user this hash belongs to
-  `issued_by` INT NOT NULL,  -- The higher-level user who issued the hash
-  `role` ENUM('Administrator', 'Dean', 'Chairperson') NOT NULL, -- Role of the user
-  `hash_value` VARCHAR(255) NOT NULL, -- The hash itself
-  `status` ENUM('Enabled', 'Disabled') DEFAULT 'Enabled', -- Controls if the hash is active
+  `account_ID` INT NOT NULL,
+  `issued_by` INT NOT NULL,
+  `role` ENUM('Administrator', 'Dean', 'Chairperson') NOT NULL,
+  `hash` VARCHAR(255) NOT NULL,
+  `status` ENUM('Enabled', 'Disabled') DEFAULT 'Enabled',
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (`account_ID`) REFERENCES `Account`(`account_ID`) ON DELETE CASCADE,
   FOREIGN KEY (`issued_by`) REFERENCES `Account`(`account_ID`) ON DELETE SET NULL,
   PRIMARY KEY (`hash_ID`)
 );
-
-
 
 CREATE TABLE IF NOT EXISTS `Building` (
   `building_ID` INT AUTO_INCREMENT,
@@ -196,8 +193,6 @@ CREATE TABLE IF NOT EXISTS `Course_Section` (
   FOREIGN KEY (`section_ID`) REFERENCES `Section`(`section_ID`)
 );
 
--- to Q: Is duration in bulk or chunks? subtract/scratch out? 
--- ANS: chunks; make them not overlap
 CREATE TABLE IF NOT EXISTS `Schedule` (
   `schedule_ID` INT AUTO_INCREMENT,
   `section_ID` INT NOT NULL,
