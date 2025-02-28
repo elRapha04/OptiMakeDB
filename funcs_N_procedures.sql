@@ -1,3 +1,5 @@
+-- AI generated; yet to be modified and added upon
+
 USE optimakeDB;
 
 -- ================================================
