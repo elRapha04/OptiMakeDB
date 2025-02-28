@@ -64,7 +64,7 @@ CREATE TABLE IF NOT EXISTS `Faculty_Availability`(
   `start_time` TIME NOT NULL,
   `duration` DECIMAL NOT NULL,
   `end_time` TIME NOT NULL,
-  FOREIGN KEY (`faculty_ID`) REFERENCES `Faculty`(`faculty_ID`),
+  FOREIGN KEY (`faculty_ID`) REFERENCES `Faculty`(`faculty_ID`)
 );
 
 CREATE TABLE IF NOT EXISTS `Administrator` (
@@ -80,30 +80,30 @@ CREATE TABLE IF NOT EXISTS `Administrator` (
 
 CREATE TABLE IF NOT EXISTS `Dean` (
   `dean_ID` INT AUTO_INCREMENT,
+  `college_ID` INT NOT NULL,
   `account_ID` INT NOT NULL,
   `university_ID` INT NOT NULL,
   `campus_ID` INT NOT NULL,
-  `college_ID` INT NOT NULL,
   PRIMARY KEY (`dean_ID`),
+  FOREIGN KEY (`college_ID`) REFERENCES `College`(`college_ID`)
   FOREIGN KEY (`account_ID`) REFERENCES `Account`(`account_ID`),
   FOREIGN KEY (`university_ID`) REFERENCES `University`(`university_ID`),
-  FOREIGN KEY (`campus_ID`) REFERENCES `Campus`(`campus_ID`),
-  FOREIGN KEY (`college_ID`) REFERENCES `College`(`college_ID`)
+  FOREIGN KEY (`campus_ID`) REFERENCES `Campus`(`campus_ID`)
 );
 
 CREATE TABLE IF NOT EXISTS `Chairperson` (
   `chairperson_ID` INT AUTO_INCREMENT,
+  `department_ID` INT NOT NULL,
   `account_ID` INT NOT NULL,
   `university_ID` INT NOT NULL,
   `campus_ID` INT NOT NULL,
   `college_ID` INT NOT NULL,
-  `department_ID` INT NOT NULL,
   PRIMARY KEY (`chairperson_ID`),
+  FOREIGN KEY (`department_ID`) REFERENCES `Department`(`department_ID`)
   FOREIGN KEY (`account_ID`) REFERENCES `Account`(`account_ID`),
   FOREIGN KEY (`university_ID`) REFERENCES `University`(`university_ID`),
   FOREIGN KEY (`campus_ID`) REFERENCES `Campus`(`campus_ID`),
-  FOREIGN KEY (`college_ID`) REFERENCES `College`(`college_ID`),
-  FOREIGN KEY (`department_ID`) REFERENCES `Department`(`department_ID`)
+  FOREIGN KEY (`college_ID`) REFERENCES `College`(`college_ID`)
 );
 
 CREATE TABLE IF NOT EXISTS `Account` (
@@ -136,7 +136,7 @@ CREATE TABLE IF NOT EXISTS `Hash` (
 
 CREATE TABLE IF NOT EXISTS `Building` (
   `building_ID` INT AUTO_INCREMENT,
-  `building_no` INT,
+  `building_no` INT UNSIGNED,
   `building_name` VARCHAR,
   `college_ID` INT,
   `latitude` DECIMAL(9,6),
@@ -204,10 +204,10 @@ CREATE TABLE IF NOT EXISTS `Schedule` (
   `duration` DECIMAL NOT NULL,
   `end_time` TIME NOT NULL,
   PRIMARY KEY (`schedule_ID`),
-  FOREIGN KEY (`room_ID`) REFERENCES `Room`(`room_ID`),
-  FOREIGN KEY (`faculty_ID`) REFERENCES `Faculty`(`faculty_ID`),
+  FOREIGN KEY (`section_ID`) REFERENCES `Section`(`section_ID`),
   FOREIGN KEY (`course_ID`) REFERENCES `Course`(`course_ID`),
-  FOREIGN KEY (`section_ID`) REFERENCES `Section`(`section_ID`)
+  FOREIGN KEY (`faculty_ID`) REFERENCES `Faculty`(`faculty_ID`),
+  FOREIGN KEY (`room_ID`) REFERENCES `Room`(`room_ID`)
 );
 
 -- ================================================
@@ -227,137 +227,133 @@ BEGIN
     RETURN slots;
 END $$
 
--- Function: Check for schedule conflict in a specific section
-CREATE FUNCTION CheckSectionConflict(section_ID INT, day ENUM('M', 'T', 'W', 'Th', 'F', 'S'), start_time TIME, duration INT)
+-- Function: Calculate Age based on birthdate
+CREATE FUNCTION CalculateAge(birthdate DATE)
+RETURNS INT
+DETERMINISTIC
+BEGIN
+    RETURN TIMESTAMPDIFF(YEAR, birthdate, CURDATE());
+END $$
+
+-- Function: Calculate End Time of a session
+CREATE FUNCTION CalculateEndTime(start_time TIME, duration INT)
+RETURNS TIME
+DETERMINISTIC
+BEGIN
+    RETURN ADDTIME(start_time, SEC_TO_TIME(duration * 60));
+END $$
+
+-- Function: Check Faculty Availability
+CREATE FUNCTION CheckFacultyAvailability(faculty_ID INT, day ENUM('M', 'T', 'W', 'Th', 'F', 'S'), start_time TIME, duration INT)
 RETURNS BOOLEAN
 DETERMINISTIC
 BEGIN
-    DECLARE conflict BOOLEAN;
-    SET conflict = EXISTS (
-        SELECT 1
-        FROM Schedule
-        WHERE section_ID = section_ID
-          AND day = day
-          AND (
-              (start_time >= start_time AND start_time < ADDTIME(start_time, SEC_TO_TIME(duration * 60))) OR
-              (ADDTIME(start_time, SEC_TO_TIME(duration * 60)) > start_time AND ADDTIME(start_time, SEC_TO_TIME(duration * 60)) <= ADDTIME(start_time, SEC_TO_TIME(duration * 60)))
-          )
+    RETURN NOT EXISTS (
+        SELECT 1 FROM Schedule
+        WHERE faculty_ID = faculty_ID AND day = day
+        AND (start_time < CalculateEndTime(start_time, duration) AND CalculateEndTime(start_time, duration) > start_time)
     );
-    RETURN conflict;
 END $$
 
--- Function: Check for schedule conflict with a faculty member's schedule
-CREATE FUNCTION CheckFacultyConflict(faculty_ID INT, day ENUM('M', 'T', 'W', 'Th', 'F', 'S'), start_time TIME, duration INT)
+-- Function: Check Room Availability
+CREATE FUNCTION CheckRoomAvailability(room_ID INT, day ENUM('M', 'T', 'W', 'Th', 'F', 'S'), start_time TIME, duration INT)
 RETURNS BOOLEAN
 DETERMINISTIC
 BEGIN
-    DECLARE conflict BOOLEAN;
-    SET conflict = EXISTS (
-        SELECT 1
-        FROM Schedule
-        WHERE faculty_ID = faculty_ID
-          AND day = day
-          AND (
-              (start_time >= start_time AND start_time < ADDTIME(start_time, SEC_TO_TIME(duration * 60))) OR
-              (ADDTIME(start_time, SEC_TO_TIME(duration * 60)) > start_time AND ADDTIME(start_time, SEC_TO_TIME(duration * 60)) <= ADDTIME(start_time, SEC_TO_TIME(duration * 60)))
-          )
+    RETURN NOT EXISTS (
+        SELECT 1 FROM Schedule
+        WHERE room_ID = room_ID AND day = day
+        AND (start_time < CalculateEndTime(start_time, duration) AND CalculateEndTime(start_time, duration) > start_time)
     );
-    RETURN conflict;
 END $$
 
--- Function: Check for schedule conflict with a room's schedule
-CREATE FUNCTION CheckRoomConflict(room_ID INT, day ENUM('M', 'T', 'W', 'Th', 'F', 'S'), start_time TIME, duration INT)
+-- Function: Validate Course Section Schedule
+CREATE FUNCTION ValidateCourseSectionSchedule(section_ID INT, faculty_ID INT, day ENUM('M', 'T', 'W', 'Th', 'F', 'S'), start_time TIME, duration INT)
 RETURNS BOOLEAN
 DETERMINISTIC
 BEGIN
-    DECLARE conflict BOOLEAN;
-    SET conflict = EXISTS (
-        SELECT 1
-        FROM Schedule
-        WHERE room_ID = room_ID
-          AND day = day
-          AND (
-              (start_time >= start_time AND start_time < ADDTIME(start_time, SEC_TO_TIME(duration * 60))) OR
-              (ADDTIME(start_time, SEC_TO_TIME(duration * 60)) > start_time AND ADDTIME(start_time, SEC_TO_TIME(duration * 60)) <= ADDTIME(start_time, SEC_TO_TIME(duration * 60)))
-          )
+    RETURN NOT EXISTS (
+        SELECT 1 FROM Schedule
+        WHERE faculty_ID = faculty_ID AND day = day
+        AND (start_time < CalculateEndTime(start_time, duration) AND CalculateEndTime(start_time, duration) > start_time)
     );
-    RETURN conflict;
 END $$
-
 
 -- ================================================
 -- STORED PROCEDURES
 -- ================================================
 
--- Procedure: Add a new schedule entry for a specific course and section
-CREATE PROCEDURE AddSchedule(IN section_ID INT, IN course_ID INT, IN faculty_ID INT, IN room_ID INT, IN day ENUM('M', 'T', 'W', 'Th', 'F', 'S'), IN start_time TIME, IN duration INT)
+-- Procedure: Create New Account
+CREATE PROCEDURE CreateNewAccount(IN username VARCHAR(255), IN password_hash VARCHAR(255), IN role ENUM('Admin', 'Dean', 'Chairperson'))
 BEGIN
-    INSERT INTO Schedule (section_ID, course_ID, faculty_ID, room_ID, day, start_time, duration)
-    VALUES (section_ID, course_ID, faculty_ID, room_ID, day, start_time, duration);
+    INSERT INTO Users (username, password_hash, role)
+    VALUES (username, password_hash, role);
 END $$
 
--- Procedure: Update a faculty member's available time slots
-CREATE PROCEDURE UpdateFacultyTimeSlots(IN faculty_ID INT, IN new_time_slots VARCHAR(255))
+-- Procedure: Authenticate User
+CREATE PROCEDURE AuthenticateUser(IN username VARCHAR(255), IN input_password VARCHAR(255), OUT isAuthenticated BOOLEAN)
 BEGIN
-    UPDATE Faculty
-    SET available_time_slots = new_time_slots
-    WHERE faculty_ID = faculty_ID;
+    DECLARE stored_hash VARCHAR(255);
+    SELECT password_hash INTO stored_hash FROM Users WHERE username = username;
+    SET isAuthenticated = (stored_hash = input_password);
 END $$
 
--- Procedure: Assign a faculty member to a specific course and section
-CREATE PROCEDURE AssignFacultyToCourse(IN faculty_ID INT, IN section_ID INT, IN course_ID INT)
+-- Procedure: Change User Password
+CREATE PROCEDURE ChangeUserPassword(IN username VARCHAR(255), IN new_password_hash VARCHAR(255))
 BEGIN
-    UPDATE Schedule
-    SET faculty_ID = faculty_ID
-    WHERE section_ID = section_ID AND course_ID = course_ID;
+    UPDATE Users SET password_hash = new_password_hash WHERE username = username;
 END $$
 
--- Procedure: Remove or cancel an existing schedule entry
-CREATE PROCEDURE RemoveSchedule(IN schedule_ID INT)
+-- Procedure: Assign Faculty to Schedule
+CREATE PROCEDURE AssignFacultyToSchedule(IN faculty_ID INT, IN schedule_ID INT)
 BEGIN
-    DELETE FROM Schedule
-    WHERE schedule_ID = schedule_ID;
-END $$
-
--- Procedure: Generate a complete schedule report for a specific section in JSON format
-CREATE PROCEDURE GenerateSectionScheduleReport(IN section_ID INT, OUT scheduleReport JSON)
-BEGIN
-    SET scheduleReport = (
-        SELECT JSON_ARRAYAGG(JSON_OBJECT(
-            'schedule_ID', schedule_ID,
-            'course_ID', course_ID,
-            'faculty_ID', faculty_ID,
-            'room_ID', room_ID,
-            'day', day,
-            'start_time', start_time,
-            'duration', duration
-        ))
-        FROM Schedule
-        WHERE section_ID = section_ID
-    );
-END $$
-
--- Procedure: Add a new department, section, or room to the system
-CREATE PROCEDURE AddNewEntity(IN entityType ENUM('Department', 'Section', 'Room'), IN entityName VARCHAR(255), IN parentID INT)
-BEGIN
-    IF entityType = 'Department' THEN
-        INSERT INTO Department (department_name, college_ID) VALUES (entityName, parentID);
-    ELSEIF entityType = 'Section' THEN
-        INSERT INTO Section (section_name, department_ID) VALUES (entityName, parentID);
-    ELSEIF entityType = 'Room' THEN
-        INSERT INTO Room (room_name, college_ID) VALUES (entityName, parentID);
+    IF CheckFacultyAvailability(faculty_ID, (SELECT day FROM Schedule WHERE schedule_ID = schedule_ID),
+                                (SELECT start_time FROM Schedule WHERE schedule_ID = schedule_ID),
+                                (SELECT duration FROM Schedule WHERE schedule_ID = schedule_ID)) THEN
+        UPDATE Schedule SET faculty_ID = faculty_ID WHERE schedule_ID = schedule_ID;
     END IF;
 END $$
 
--- Procedure: Validate faculty workload to ensure it does not exceed allowed teaching units
-CREATE PROCEDURE ValidateFacultyWorkload(IN faculty_ID INT, OUT isValid BOOLEAN)
+-- Procedure: Get Faculty Schedule
+CREATE PROCEDURE GetFacultySchedule(IN faculty_ID INT)
 BEGIN
-    DECLARE totalUnits INT;
-    SELECT SUM(duration) / 60 INTO totalUnits
-    FROM Schedule
-    WHERE faculty_ID = faculty_ID;
+    SELECT * FROM Schedule WHERE faculty_ID = faculty_ID;
+END $$
 
-    SET isValid = totalUnits <= (SELECT units FROM Faculty WHERE faculty_ID = faculty_ID);
+-- Procedure: Add New Faculty Member
+CREATE PROCEDURE AddNewFacultyMember(IN name VARCHAR(255), IN department_ID INT, IN birthdate DATE, IN contact_info VARCHAR(255))
+BEGIN
+    INSERT INTO Faculty (name, department_ID, birthdate, contact_info)
+    VALUES (name, department_ID, birthdate, contact_info);
+END $$
+
+-- Procedure: Update Faculty Information
+CREATE PROCEDURE UpdateFacultyInformation(IN faculty_ID INT, IN contact_info VARCHAR(255), IN department_ID INT)
+BEGIN
+    UPDATE Faculty
+    SET contact_info = contact_info, department_ID = department_ID
+    WHERE faculty_ID = faculty_ID;
+END $$
+
+-- Procedure: Delete Faculty Record
+CREATE PROCEDURE DeleteFacultyRecord(IN faculty_ID INT)
+BEGIN
+    DELETE FROM Faculty WHERE faculty_ID = faculty_ID;
+END $$
+
+-- Procedure: List Faculty by Department
+CREATE PROCEDURE ListFacultyByDepartment(IN department_ID INT)
+BEGIN
+    SELECT * FROM Faculty WHERE department_ID = department_ID;
+END $$
+
+-- Procedure: List Available Rooms
+CREATE PROCEDURE ListAvailableRooms(IN day ENUM('M', 'T', 'W', 'Th', 'F', 'S'), IN start_time TIME, IN duration INT)
+BEGIN
+    SELECT * FROM Room WHERE room_ID NOT IN (
+        SELECT room_ID FROM Schedule WHERE day = day
+        AND (start_time < CalculateEndTime(start_time, duration) AND CalculateEndTime(start_time, duration) > start_time)
+    );
 END $$
 
 DELIMITER ;
@@ -369,70 +365,70 @@ DELIMITER $$
 
 CREATE PROCEDURE InsertAllData()
 BEGIN
-  INSERT INTO University (university_name) VALUES
-  ('University A'),
-  ('University B'),
-  ('University C'),
-  ('University D'),
-  ('University E');
-  
-  INSERT INTO Campus (campus_name, university_ID) VALUES
-  ('Campus A1', 1),
-  ('Campus B1', 2),
-  ('Campus C1', 3),
-  ('Campus D1', 4),
-  ('Campus E1', 5);
-  
-  INSERT INTO College (college_name, campus_ID) VALUES
-  ('College A1', 1),
-  ('College B1', 2),
-  ('College C1', 3),
-  ('College D1', 4),
-  ('College E1', 5);
-  
-  INSERT INTO Department (department_name, college_ID) VALUES
-  ('Department A1', 1),
-  ('Department B1', 2),
-  ('Department C1', 3),
-  ('Department D1', 4),
-  ('Department E1', 5);
-  
-  INSERT INTO Faculty (first_name, last_name, units, available_time_slots, birthdate, age, gender, contact_number, email, address) VALUES
-  ('John', 'Doe', 3, 'MWF 9:00-12:00', '1985-03-25', 40, 'Male', '0917123456', 'john.doe@example.com', '123 Main St'),
-  ('Jane', 'Smith', 4, 'TTh 10:00-1:00', '1987-04-15', 38, 'Female', '0917123457', 'jane.smith@example.com', '456 Oak St'),
-  ('James', 'Brown', 3, 'MWF 1:00-4:00', '1990-07-20', 34, 'Male', '0917123458', 'james.brown@example.com', '789 Pine St'),
-  ('Emily', 'Jones', 2, 'TTh 9:00-12:00', '1992-11-05', 32, 'Female', '0917123459', 'emily.jones@example.com', '101 Maple St'),
-  ('Michael', 'Davis', 3, 'MWF 2:00-5:00', '1984-02-18', 41, 'Male', '0917123460', 'michael.davis@example.com', '202 Birch St');
-  
-  INSERT INTO Room (room_no, room_name, building_no, building_name, floor_no, college_ID) VALUES
-  (101, 'Room A101', 1, 'Building A', 1, 1),
-  (102, 'Room A102', 1, 'Building A', 1, 2),
-  (201, 'Room B201', 2, 'Building B', 2, 3),
-  (202, 'Room B202', 2, 'Building B', 2, 4),
-  (301, 'Room C301', 3, 'Building C', 3, 5);
-  
-  INSERT INTO Section (section_name, department_ID) VALUES
-  ('Section A1', 1),
-  ('Section B1', 2),
-  ('Section C1', 3),
-  ('Section D1', 4),
-  ('Section E1', 5);
-  
-  INSERT INTO Course (course_code, course_title, units, section_ID) VALUES
-  ('CS101', 'Introduction to Computer Science', 3, 1),
-  ('CS102', 'Data Structures', 3, 2),
-  ('CS103', 'Algorithms', 3, 3),
-  ('CS104', 'Software Engineering', 3, 4),
-  ('CS105', 'Operating Systems', 3, 5);
-  
-  INSERT INTO Schedule (section_ID, course_ID, faculty_ID, room_ID, day, start_time, duration) VALUES
-  (1, 1, 1, 1, 'M', '09:00:00', 60),
-  (2, 2, 2, 2, 'T', '10:00:00', 60),
-  (3, 3, 3, 3, 'W', '11:00:00', 60),
-  (4, 4, 4, 4, 'Th', '14:00:00', 60),
-  (5, 5, 5, 5, 'F', '13:00:00', 60);
-  
-END$$
+    -- Insert into University
+    INSERT INTO University (university_name) VALUES
+    ('University A'), ('University B'), ('University C'), ('University D'), ('University E');
+    
+    -- Insert into Campus
+    INSERT INTO Campus (campus_name, university_ID, latitude, longitude) VALUES
+    ('Campus A1', 1, 8.4772, 124.6450),
+    ('Campus B1', 2, 8.4773, 124.6451),
+    ('Campus C1', 3, 8.4774, 124.6452),
+    ('Campus D1', 4, 8.4775, 124.6453),
+    ('Campus E1', 5, 8.4776, 124.6454);
+    
+    -- Insert into College
+    INSERT INTO College (college_name, campus_ID) VALUES
+    ('College of Science', 1), ('College of Engineering', 2), ('College of Arts', 3), ('College of Business', 4), ('College of Education', 5);
+    
+    -- Insert into Department
+    INSERT INTO Department (department_name, college_ID) VALUES
+    ('Computer Science', 1), ('Electrical Engineering', 2), ('Fine Arts', 3), ('Marketing', 4), ('Secondary Education', 5);
+    
+    -- Insert into Faculty
+    INSERT INTO Faculty (first_name, last_name, units, birthdate, age, gender, contact_number, email) VALUES
+    ('John', 'Doe', 12, '1980-05-15', 44, 'Male', '09171234567', 'john.doe@example.com'),
+    ('Jane', 'Smith', 15, '1985-08-22', 39, 'Female', '09172345678', 'jane.smith@example.com');
+    
+    -- Insert into Faculty_Availability
+    INSERT INTO Faculty_Availability (faculty_ID, day, start_time, duration, end_time) VALUES
+    (1, 'M', '08:00:00', 1.5, '09:30:00'),
+    (2, 'T', '10:00:00', 2, '12:00:00');
+    
+    -- Insert into Account
+    INSERT INTO Account (username, password, role, first_name, last_name, birthdate, age, gender, contact_number, email) VALUES
+    ('admin1', 'pass123', 'Administrator', 'Alice', 'Johnson', '1988-10-10', 36, 'Female', '09173456789', 'alice.johnson@example.com');
+    
+    -- Insert into Administrator
+    INSERT INTO Administrator (account_ID, university_ID, campus_ID) VALUES (1, 1, 1);
+    
+    -- Insert into Building
+    INSERT INTO Building (building_no, building_name, college_ID, latitude, longitude) VALUES
+    (1, 'Science Building', 1, 8.4780, 124.6460);
+    
+    -- Insert into Apparatus
+    INSERT INTO Apparatus (apparatus_name) VALUES ('Projector');
+    
+    -- Insert into Room
+    INSERT INTO Room (room_no, room_name, building_ID, floor_no, apparatus_ID) VALUES
+    (101, 'Lab A1', 1, 1, 1);
+    
+    -- Insert into Section
+    INSERT INTO Section (section_name, year_level, university_ID, campus_ID, college_ID, department_ID) VALUES
+    ('CS 1-A', '1st', 1, 1, 1, 1);
+    
+    -- Insert into Course
+    INSERT INTO Course (course_code, course_title, units) VALUES
+    ('CS101', 'Introduction to Computer Science', 3);
+    
+    -- Insert into Course_Section
+    INSERT INTO Course_Section (course_ID, section_ID) VALUES (1, 1);
+    
+    -- Insert into Schedule
+    INSERT INTO Schedule (section_ID, course_ID, faculty_ID, room_ID, day, start_time, duration, end_time) VALUES
+    (1, 1, 1, 1, 'M', '09:30:00', 1.5, '11:00:00');
+END $$
+
 
 -- DELETE DUMMY DATA===============================================================
 
@@ -440,46 +436,40 @@ END$$
 CREATE PROCEDURE DeleteAllData()
 BEGIN
     DELETE FROM Schedule;
-
+    DELETE FROM Course_Section;
     DELETE FROM Course;
-
     DELETE FROM Section;
-
     DELETE FROM Room;
-
+    DELETE FROM Apparatus;
+    DELETE FROM Building;
+    DELETE FROM Faculty_Availability;
     DELETE FROM Faculty;
-
     DELETE FROM Department;
-
     DELETE FROM College;
-
     DELETE FROM Campus;
-
     DELETE FROM University;
+    DELETE FROM Account;
+    DELETE FROM Administrator;
 END $$
 
--- SHOW ALL TABLES========================================
-
--- Procedure to display all dummy data from all tables
+-- DISPLAY DUMMY DATA===============================================================
 CREATE PROCEDURE ShowAllTables()
 BEGIN
-    SELECT * FROM Schedule;
-
-    SELECT * FROM Course;
-
-    SELECT * FROM Section;
-
-    SELECT * FROM Room;
-
-    SELECT * FROM Faculty;
-
-    SELECT * FROM Department;
-
-    SELECT * FROM College;
-
-    SELECT * FROM Campus;
-
     SELECT * FROM University;
+    SELECT * FROM Campus;
+    SELECT * FROM College;
+    SELECT * FROM Department;
+    SELECT * FROM Faculty;
+    SELECT * FROM Faculty_Availability;
+    SELECT * FROM Account;
+    SELECT * FROM Administrator;
+    SELECT * FROM Building;
+    SELECT * FROM Apparatus;
+    SELECT * FROM Room;
+    SELECT * FROM Section;
+    SELECT * FROM Course;
+    SELECT * FROM Course_Section;
+    SELECT * FROM Schedule;
 END $$
 
 DELIMITER ;
